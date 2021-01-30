@@ -1,0 +1,1 @@
+C++ Wrapper for libcurl. Easy and Multi transfer support.
