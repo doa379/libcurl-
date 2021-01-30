@@ -142,7 +142,7 @@ template class Curl<bool>;
 CurlM::CurlM(long max_sync_conn)
 {
   curlm = curl_multi_init();
-  curl_multi_setopt(curlm, CURLMOPT_MAX_TOTAL_CONNECTIONS, (long) max_sync_conn);
+  curl_multi_setopt(curlm, CURLMOPT_MAX_TOTAL_CONNECTIONS, max_sync_conn);
 }
 
 CurlM::~CurlM(void)
@@ -211,7 +211,7 @@ void CurlM::cbs(void)
     for (auto &ch : CH)
     {
       auto f { std::async(std::launch::async, [&ch]() { ch->cb(ch->buffer); }) };
-      F.push_back(std::move(f));
+      F.emplace_back(std::move(f));
     }
     
     for (auto &f : F)
