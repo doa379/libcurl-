@@ -1,19 +1,21 @@
 LOCAL = ../
-LIBS_PATH = -L /usr/lib64 -L /usr/local/lib -L ${LOCAL}/
+LIBS_PATH = -L /usr/lib64 -L /usr/local/lib -L ${LOCAL}/libcurl++
 INCS = -I /usr/local/include -I ${LOCAL}
-LIBS = -l curl -Wl,-rpath=${LOCAL_LIB}/
+LIBS = -l curl
 
 SRC_LIBCURL = curl.cpp
 OBJ_LIBCURL = ${SRC_LIBCURL:.cpp=.o}
 
-SRC_TEST = example.cpp
-OBJ_TEST = ${SRC_TEST:.cpp=.o}
+SRC_TEST0 = easy_example.cpp
+OBJ_TEST0 = ${SRC_TEST0:.cpp=.o}
+SRC_TEST1 = multi_example.cpp
+OBJ_TEST1 = ${SRC_TEST1:.cpp=.o}
 
-CC = g++
-CFLAGS = -std=c++11 -c -g -Wall -Werror -fPIE -fPIC -pedantic ${INCS}
-LDFLAGS = ${LIBS}
+CC = c++
+CFLAGS = -std=c++14 -c -g -Wall -Werror -fPIE -fPIC -pedantic ${INCS}
+LDFLAGS = ${LIBS_PATH} ${LIBS}
 
-all: libcurl++.so example
+all: libcurl++.so easy_example multi_example
 
 .cpp.o:
 		@echo CC $<
@@ -23,11 +25,15 @@ libcurl++.so: ${OBJ_LIBCURL}
 		@echo CC -o $@
 		@${CC} -shared -o $@ ${OBJ_LIBCURL} ${LDFLAGS}
 
-example: ${OBJ_TEST}
+easy_example: ${OBJ_TEST0}
 		@echo CC -o $@
-		@${CC} -o $@ ${OBJ_TEST} ${LDFLAGS} -L $(CURDIR) -l curl++ -Wl,-rpath,$(CURDIR)
+		@${CC} -o $@ ${OBJ_TEST0} ${LIBS_PATH} -l curl++
+
+multi_example: ${OBJ_TEST1}
+		@echo CC -o $@
+		@${CC} -o $@ ${OBJ_TEST1} ${LIBS_PATH} -l curl++
 
 clean:
 		@echo Cleaning
-		@rm -f ${OBJ_LIBCURL} ${OBJ_TEST}
-		@rm -f example
+		@rm -f ${OBJ_LIBCURL} ${OBJ_TEST0} ${OBJ_TEST1}
+		@rm -f *example

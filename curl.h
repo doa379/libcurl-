@@ -2,7 +2,6 @@
 #include <curl/curl.h>
 #include <string>
 #include <vector>
-#include <memory>
 #include <functional>
 
 static const bool DEFAULT_KEEPALIVE { 1 };
@@ -48,12 +47,12 @@ class CurlM
   int msgs_left;
   CURLMsg *msg;
   std::string report;
-  std::vector<std::shared_ptr<Curl<void>>> CH;
+  std::vector<std::reference_wrapper<Curl<void>>> CH;
   public:
   CurlM(long);
   ~CurlM(void);
   void perform_request(void);
-  void set_handle(std::shared_ptr<Curl<void>>);
+  void set_handle(Curl<void> &);
   void clear_handles(void);
   void cbs(void);
   void clear_CH(void);

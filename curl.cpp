@@ -2,6 +2,7 @@
 #include <unistd.h>
 #include <sys/stat.h>
 #include <future>
+#include <algorithm>
 #include "curl.h"
 
 void init_curl(void)
@@ -51,8 +52,8 @@ Curl<T>::~Curl(void)
   fclose(stderr);
 #endif
   timeout_easy_connection();
-  curl_easy_cleanup(eh);
   curl_slist_free_all(header);
+  curl_easy_cleanup(eh);
 }
 
 template<typename T>
@@ -113,7 +114,7 @@ std::size_t Curl<T>::write(void *ptr, std::size_t size, std::size_t nmemb, void 
 {
   Curl *curl = static_cast<Curl *>(userp);
   std::size_t relsize { size * nmemb };
-  for (std::size_t i = 0; i < relsize; i++)
+  for (std::size_t i { 0 }; i < relsize; i++)
   {
     curl->buffer += ((char *) ptr)[i];
     curl->streaming_cb(curl);
@@ -170,13 +171,11 @@ void CurlM::perform_request(void)
     while ((msg = curl_multi_info_read(curlm, &msgs_left)))
       if (msg->msg == CURLMSG_DONE)
       {
-        /*
         auto ch { std::find_if(CH.begin(), CH.end(), [this](auto ch) {
-          return ch->eh == msg->easy_handle; }) };
+          return ch.get().eh == msg->easy_handle; }) };
         char *done_url;
         curl_easy_getinfo(msg->easy_handle, CURLINFO_EFFECTIVE_URL, &done_url);
-        (*ch)->report = "I: " + std::string(done_url) + " DONE";
-        */
+        ch->get().report = "I: " + std::string(done_url) + " DONE";
         curl_multi_remove_handle(curlm, msg->easy_handle);
       }
   }
@@ -186,10 +185,10 @@ void CurlM::perform_request(void)
   clear_CH();
 }
 
-void CurlM::set_handle(std::shared_ptr<Curl<void>> curl)
+void CurlM::set_handle(Curl<void> &curl)
 {
-  curl_multi_add_handle(curlm, curl->eh);
-  CH.push_back(curl);
+  curl_multi_add_handle(curlm, curl.eh);
+  CH.emplace_back(curl);
 }
 
 void CurlM::clear_handles(void)
@@ -203,14 +202,14 @@ void CurlM::cbs(void)
   if (CH.size() < DEFAULT_ASYNC_THRESHOLD)
   {
     for (auto &ch : CH)
-      ch->cb(ch->buffer);
+      ch.get().cb(ch.get().buffer);
   }
   else
   {
     std::vector<std::future<void>> F;
     for (auto &ch : CH)
     {
-      auto f { std::async(std::launch::async, [&ch]() { ch->cb(ch->buffer); }) };
+      auto f { std::async(std::launch::async, [&ch]() { ch.get().cb(ch.get().buffer); }) };
       F.emplace_back(std::move(f));
     }
     
@@ -221,9 +220,6 @@ void CurlM::cbs(void)
 
 void CurlM::clear_CH(void)
 {
-  for (auto &ch : CH)
-    ch->clear_buffer();
-
   CH.clear();
 }
 
