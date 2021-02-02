@@ -220,6 +220,9 @@ void CurlM::cbs(void)
 
 void CurlM::clear_CH(void)
 {
+  for (auto &ch : CH)
+    ch.get().clear_buffer();
+
   CH.clear();
 }
 
