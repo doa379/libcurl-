@@ -12,7 +12,7 @@ SRC_TEST1 = multi_example.cpp
 OBJ_TEST1 = ${SRC_TEST1:.cpp=.o}
 
 CC = c++
-CFLAGS = -std=c++14 -c -g -Wall -Werror -fPIE -fPIC -pedantic ${INCS}
+CFLAGS = -std=c++14 -c -Wall -Werror -fPIE -fPIC -pedantic ${INCS}
 LDFLAGS = ${LIBS_PATH} ${LIBS}
 
 all: libcurl++.so easy_example multi_example

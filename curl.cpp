@@ -26,7 +26,9 @@ Curl<T>::Curl(Cb<T> &cb, const std::vector<std::string> &HEADERS, const std::str
   curl_easy_setopt(eh, CURLOPT_HTTPHEADER, header);
   curl_easy_setopt(eh, CURLOPT_URL, url.c_str());
   curl_easy_setopt(eh, CURLOPT_WRITEDATA, this);
+  curl_easy_setopt(eh, CURLOPT_HEADERDATA, this);
   curl_easy_setopt(eh, CURLOPT_WRITEFUNCTION, write);
+  curl_easy_setopt(eh, CURLOPT_HEADERFUNCTION, write_header);
   curl_easy_setopt(eh, CURLOPT_TCP_KEEPALIVE, (long) DEFAULT_KEEPALIVE);
   curl_easy_setopt(eh, CURLOPT_TIMEOUT_MS, (long) DEFAULT_TIMEOUTMS);
 #ifdef CURL_VERBOSE
@@ -59,10 +61,12 @@ Curl<T>::~Curl(void)
 template<typename T>
 bool Curl<T>::perform_request(void)
 {
+  clear_header_buffer();
   CURLcode res = curl_easy_perform(eh);
   if (res != CURLE_OK)
   {
     report = "E: curl_easy_perform: " + std::string(curl_easy_strerror(res));
+  	clear_header_buffer();
     clear_buffer();
     return 0;
   }
@@ -113,14 +117,14 @@ template<typename T>
 std::size_t Curl<T>::write(void *ptr, std::size_t size, std::size_t nmemb, void *userp)
 {
   Curl *curl = static_cast<Curl *>(userp);
-  std::size_t relsize { size * nmemb };
-  for (std::size_t i { 0 }; i < relsize; i++)
+  std::size_t realsize { size * nmemb };
+  for (std::size_t i { 0 }; i < realsize; i++)
   {
     curl->buffer += ((char *) ptr)[i];
     curl->streaming_cb(curl);
   }
 
-  return relsize;
+  return realsize;
 }
 
 template<>
@@ -139,6 +143,29 @@ void Curl<bool>::streaming_cb(Curl *curl)
 }
 
 template class Curl<bool>;
+
+template<typename T>
+std::size_t Curl<T>::write_header(void *ptr, std::size_t size, std::size_t nmemb, void *userp)
+{
+  Curl *curl = static_cast<Curl *>(userp);
+  std::size_t realsize { size * nmemb };
+  for (std::size_t i { 0 }; i < realsize; i++)
+    curl->header_buffer += ((char *) ptr)[i];
+
+  return realsize;
+}
+
+template<typename T>
+std::string &Curl<T>::get_response_header(void)
+{
+  return header_buffer;
+}
+
+template<typename T>
+void Curl<T>::clear_header_buffer(void)
+{
+  header_buffer.clear();
+}
 
 CurlM::CurlM(long max_sync_conn)
 {
@@ -221,7 +248,10 @@ void CurlM::cbs(void)
 void CurlM::clear_CH(void)
 {
   for (auto &ch : CH)
+  {
+    ch.get().clear_header_buffer();
     ch.get().clear_buffer();
+  }
 
   CH.clear();
 }

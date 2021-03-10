@@ -25,7 +25,7 @@ class Curl
   struct curl_slist *header;
   CURL *eh;
   FILE *stderr;
-  std::string buffer, report;
+  std::string buffer, report, header_buffer;
   public:
   Curl(Cb<T> &, const std::vector<std::string> &, const std::string &);
   ~Curl(void);
@@ -39,6 +39,9 @@ class Curl
   void set_cb(Cb<T> &);
   static std::size_t write(void *, std::size_t, std::size_t, void *);
   void streaming_cb(Curl *);
+  static std::size_t write_header(void *, std::size_t, std::size_t, void *);
+  std::string &get_response_header(void);
+  void clear_header_buffer(void);
 };
 
 class CurlM
