@@ -4,10 +4,10 @@
 int main()
 {
   init_curl();
-  Cb<void> cb { [](const std::string &buffer) { std::cout << buffer << std::endl; } };
   std::vector<std::string> HEADERS;
-	Curl<void> curl(cb, HEADERS, std::string("https://curl.se"));
-  curl.perform_request();
+	Curl curl(HEADERS, std::string("https://curl.se"));
+  if (curl.perform_request())
+    std::cout << curl.get_response() << std::endl;
   std::cout << "The response_header:\n";
   std::cout << "====================\n";
   std::cout << curl.get_response_header() << '\n';
