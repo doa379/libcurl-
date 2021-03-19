@@ -39,6 +39,7 @@ class Curl
   static std::size_t write_header(void *, std::size_t, std::size_t, void *);
   std::string &get_response_header(void);
   void clear_header_buffer(void);
+  void set_headers(const std::vector<std::string> &);
 };
 
 class CurlM

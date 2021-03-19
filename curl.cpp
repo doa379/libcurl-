@@ -137,6 +137,15 @@ void Curl::clear_header_buffer(void)
   header_buffer.clear();
 }
 
+void Curl::set_headers(const std::vector<std::string> &HEADERS)
+{
+  if (header)
+    curl_slist_free_all(header);
+
+  for (const auto &h : HEADERS)
+    header = curl_slist_append(header, h.c_str());
+}
+
 CurlM::CurlM(long max_sync_conn)
 {
   curlm = curl_multi_init();
