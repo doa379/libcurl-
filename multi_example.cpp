@@ -4,8 +4,7 @@
 int main()
 {
   init_curl();
-  std::vector<std::string> HEADERS;
-	Curl easy(HEADERS, std::string("https://curl.se"));
+	Curl easy({ }, std::string("https://curl.se"));
   CurlM multi(1);
   multi.set_handle(easy);
   multi.perform_request();

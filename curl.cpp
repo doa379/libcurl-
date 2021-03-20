@@ -69,14 +69,19 @@ bool Curl::perform_request(void)
 }
 
 template<typename T>
-CURLcode Curl::set_easy_option(CURLoption option, const T &t)
+CURLcode Curl::set_easy_option(CURLoption option, const T t)
 {
   return curl_easy_setopt(eh, option, t);
 }
 
-CURLcode Curl::set_easy_option(CURLoption option, const std::string &parameter)
+template CURLcode Curl::set_easy_option<long>(CURLoption option, const long t);
+template CURLcode Curl::set_easy_option<const void *>(CURLoption option, const void *t);
+template CURLcode Curl::set_easy_option<const void (*)(void *)>(CURLoption option, const void (*t)(void *));
+template CURLcode Curl::set_easy_option<const curl_off_t>(CURLoption option, const curl_off_t t);
+
+CURLcode Curl::set_easy_option(CURLoption option, const std::string &param)
 {
-  return curl_easy_setopt(eh, option, parameter.c_str());
+  return curl_easy_setopt(eh, option, param.c_str());
 }
 
 void Curl::timeout_easy_connection(void)
@@ -145,6 +150,17 @@ void Curl::set_headers(const std::vector<std::string> &HEADERS)
   for (const auto &h : HEADERS)
     header = curl_slist_append(header, h.c_str());
 }
+
+template<typename T>
+CURLcode Curl::get_easyinfo(CURLINFO info, const T *t)
+{
+  return curl_easy_getinfo(eh, info, t);
+}
+
+template CURLcode Curl::get_easyinfo<long>(CURLINFO info, const long *t);
+template CURLcode Curl::get_easyinfo<char>(CURLINFO info, const char *t);
+template CURLcode Curl::get_easyinfo<struct curl_slist>(CURLINFO info, const struct curl_slist *t);
+template CURLcode Curl::get_easyinfo<double>(CURLINFO info, const double *t);
 
 CurlM::CurlM(long max_sync_conn)
 {

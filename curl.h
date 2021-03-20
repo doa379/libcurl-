@@ -28,7 +28,7 @@ class Curl
   ~Curl(void);
   bool perform_request(void);
   template<typename T>
-  CURLcode set_easy_option(CURLoption, const T &);
+  CURLcode set_easy_option(CURLoption, const T);
   CURLcode set_easy_option(CURLoption, const std::string &);
   void timeout_easy_connection(void);
   std::string &get_report(void);
@@ -40,6 +40,8 @@ class Curl
   std::string &get_response_header(void);
   void clear_header_buffer(void);
   void set_headers(const std::vector<std::string> &);
+  template<typename T>
+  CURLcode get_easyinfo(CURLINFO, const T *);
 };
 
 class CurlM

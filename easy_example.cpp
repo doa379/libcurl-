@@ -4,8 +4,7 @@
 int main()
 {
   init_curl();
-  std::vector<std::string> HEADERS;
-	Curl curl(HEADERS, std::string("https://curl.se"));
+	Curl curl({ }, std::string("https://curl.se"));
   if (curl.perform_request())
     std::cout << curl.get_response() << std::endl;
   std::cout << "The response_header:\n";
